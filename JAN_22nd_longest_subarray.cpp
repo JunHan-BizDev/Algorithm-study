@@ -42,10 +42,13 @@ public:
                             j = 0;
                     }
                     else
+                    {
                         count++;
+                        substring_length.push_back(count);
+                    }
                 }
             }
-
+            
             for(auto i : substring_length)
             {
                 if(max < i)

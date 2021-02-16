@@ -54,6 +54,7 @@ public class Breakout extends GraphicsProgram {
 /** Number of turns */
 	private static final int NTURNS = 3;
 
+	
 /* Method: run() */
 /** Runs the Breakout program. */
 	public void run() {
@@ -68,6 +69,7 @@ public class Breakout extends GraphicsProgram {
 		 * */
 		
 		this.setUp();
+		this.playProgram();
 	}
 	
 	private void setUp()
@@ -80,7 +82,7 @@ public class Breakout extends GraphicsProgram {
 		setUpBall();
 		
 		//2. set up the movable pad and balls
-		
+		playProgram();
 		
 		//3. balls get it to bounce off the walls 
 		
@@ -88,35 +90,125 @@ public class Breakout extends GraphicsProgram {
 	
 	private void setUpBrick()
 	{
-		Color[] brick_color = {Color.red,Color.red,Color.orange,Color.orange,
-				Color.yellow,Color.yellow,Color.green,Color.green,Color.cyan,
-				Color.cyan};
 		
-		for(int height = 0; height < 10; height++)
+		for(int height = 0; height < NBRICK_ROWS; height++)
 		{
-			for(int width = 0; width < 10; width++)
+			int y = BRICK_Y_OFFSET + (height * (BRICK_HEIGHT + BRICK_SEP));
+
+			for(int width = 0; width < NBRICKS_PER_ROW; width++)
 			{
-				GObject brick = new GRect(BRICK_WIDTH,BRICK_HEIGHT);
+				int x = (width * (BRICK_SEP + BRICK_WIDTH)) + ((WIDTH - 
+						((NBRICKS_PER_ROW * BRICK_WIDTH) + ((NBRICKS_PER_ROW - 1) * BRICK_SEP))) / 2);
+
+				GRect brick = new GRect(x,y,BRICK_WIDTH,BRICK_HEIGHT);
 				brick.setColor(brick_color[height]);
-				this.add(brick, width*BRICK_WIDTH, height*BRICK_HEIGHT);
+				brick.setFilled(true);
+				this.add(brick);
 			}
 		}
-
 	}
 	
+	//mouse motion listener 추가해야됨
 	private void setUpPaddle()
 	{
-		GObject paddle = new GRect(PADDLE_WIDTH,PADDLE_HEIGHT);
-		MouseListener listner = new MouseListener();
-
-		//paddle.addMouseMotionListener();
-		
+		GRect paddle = new GRect( (WIDTH- PADDLE_WIDTH) / 2, HEIGHT-(PADDLE_Y_OFFSET+PADDLE_HEIGHT) ,PADDLE_WIDTH,PADDLE_HEIGHT);
+		paddle.setFilled(true);
+		paddle.addMouseMotionListener(null);
+		this.addMouseListeners();
 		add(paddle);
 	}
+	
 	private void setUpBall()
 	{
+		ball = new GOval(WIDTH / 2 - BALL_RADIUS / 2,
+				HEIGHT / 2 - BALL_RADIUS / 2,
+				BALL_RADIUS, BALL_RADIUS);
 		
+		ball.setFillColor (Color.BLACK);
+		ball.setFilled (true);
+		add(ball);
+		vx = rgen.nextDouble(1.0, 3.0);
+		if(rgen.nextBoolean(0.5))
+			vx = -vx;
+		vy = 3.0;
+
+        String message= "Click to start";
+        GLabel prompt= new GLabel (message);
+        prompt.setColor(Color.red);
+        prompt.setFont(new Font("Arial", Font.PLAIN, 15));
+        prompt.move ((WIDTH-prompt.getWidth())/2, 100/2);
+        add(prompt);
+        waitForClick();
+        remove(prompt);
+
 	}
 
+	private MouseMotionListener setPaddleMovable(GObject paddle)
+	{
+		MouseMotionListener x_paddle = new MouseMotionListener() {
+			
+		
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				GPoint loc = new GPoint(e.getX(),PADDLE_Y_OFFSET);
+				paddle.setLocation(loc);
+			}
+			
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		};
+		
+		return x_paddle;
+	}
 
+	
+	
+	private void playProgram()
+	{
+		setBallMovable();
+	}
+	
+	private void setBallMovable()
+	{
+		
+		ball_pos = ball.getLocation();
+		if(ball_pos.getX() + BALL_RADIUS > WIDTH) 
+			vx = -vx;
+		else if(ball_pos.getX() <= 0)
+			vx = - vx;
+		
+		if(ball_pos.getY() >= HEIGHT)
+			vy = vy;
+		else if(ball_pos.getY() <= 0)
+			vy = -vy;
+		
+		ball.move(vx, vy);
+		
+		checkCollision();
+	}
+	
+	private Boolean checkCollision()
+	{
+		GObject check_collision;
+		check_collision = this.getElementAt(vx, vy);
+		
+		//if(check_collision != null);
+			
+		return true;
+	}	
+	
+	
+	/* member variables */
+	
+	private double vx, vy; //keep track of the velocity of the ball
+	private RandomGenerator rgen = new RandomGenerator(); //random values
+	private GOval ball;
+	private GPoint ball_pos;
+	private static Color[] brick_color = {Color.red,Color.red,Color.orange,Color.orange,
+			Color.yellow,Color.yellow,Color.green,Color.green,Color.cyan,
+			Color.cyan};
+	
 }
